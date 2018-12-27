@@ -58,9 +58,13 @@ def main():
         sys.exit()
     
     capture = pyshark.LiveCapture()
-    capture.sniff(timeout=int(args.capture_time))
+    cap_timeout = 60 * int(args.capture_time)
+    log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
+    capture.sniff(timeout=cap_timeout)
+    log.info("[CAPTURE] Packet capture finished!")
     for packet in capture.sniff_continuously():
         log.info("Packet: {}".format(packet))
+    log.info("[CAPTURE] All packets reported!")
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Identifies unexpected control-plane traffic")
