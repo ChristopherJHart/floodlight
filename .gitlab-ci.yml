@@ -5,6 +5,6 @@ services:
 
 build:
   script:
-    - docker build --build-arg GITLAB_TOKEN=$GITLAB_TOKEN -t floodlight .
+    - docker build --build-arg GITLAB_TOKEN -t floodlight .
     - docker tag floodlight containers.cisco.com/chart2/floodlight
     - docker push containers.cisco.com/chart2/floodlight
