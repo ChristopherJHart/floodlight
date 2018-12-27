@@ -58,7 +58,7 @@ def main():
         sys.exit()
     
     capture = pyshark.LiveCapture()
-    capture.sniff(timeout=args.capture_time)
+    capture.sniff(timeout=int(args.capture_time))
     for packet in capture.sniff_continuously():
         log.info("Packet: {}".format(packet))
 
