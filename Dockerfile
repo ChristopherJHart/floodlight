@@ -1,5 +1,8 @@
 FROM alpine:latest
 
+ARG GITLAB_TOKEN
+ENV GITLAB_TOKEN=$GITLAB_TOKEN
+
 RUN export http_proxy=http://proxy.esl.cisco.com:80/
 RUN export https_proxy=https://proxy.esl.cisco.com:80/
 RUN apk --update --no-cache add tshark python3 git
