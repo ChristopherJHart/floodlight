@@ -1,7 +1,6 @@
 from ciscoconfparse import CiscoConfParse as CCP
 import pyshark
 import logging
-import argparse
 import os
 import sys
 
@@ -40,8 +39,7 @@ logging.basicConfig(filename="floodlight.log", filemode="a+")
 NXOS_CFG_PATH = "/startup-config"
 
 def main():
-    args = parse_arguments()
-    if args.debug:
+    if os.environ.get("DEBUG") is not None:
         log.setLevel(logging.DEBUG)
         log.info("[LOG] Debug logging level set!")
     else:
@@ -57,24 +55,19 @@ def main():
         log.error("[SETUP] NX-OS startup-config file not detected!")
         sys.exit()
     
+    if os.environ.get("CAPTURE_TIME") is not None:
+        capture_time = int(os.environ.get("CAPTURE_TIME"))
+    else:
+        capture_time = 1
+    
     capture = pyshark.LiveCapture()
-    cap_timeout = 60 * int(args.capture_time)
+    cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
     for packet in capture:
         log.info("Packet: {}".format(packet))
     log.info("[CAPTURE] All packets reported!")
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Identifies unexpected control-plane traffic")
-
-    # Optional arguments
-    parser.add_argument("--debug", "-d", action="store_true", default=False, help="Enable debug logging levels")
-    parser.add_argument("--capture-time", "-c", action="store", default="1", help="Amount of time (in minutes) to capture control-plane traffic for")
-
-    args = parser.parse_args()
-    return args
 
 
 if __name__ == "__main__":
