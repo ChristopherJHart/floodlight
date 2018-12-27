@@ -1,5 +1,8 @@
 image: docker:stable
 
+services:
+  - docker:dind
+
 build:
   script:
     - docker build -t floodlight .
