@@ -61,7 +61,7 @@ def main():
     cap_timeout = 60 * int(args.capture_time)
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
-    log.info("[CAPTURE] Packet capture finished!")
+    log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
     for packet in capture:
         log.info("Packet: {}".format(packet))
     log.info("[CAPTURE] All packets reported!")
