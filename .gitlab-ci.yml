@@ -1,4 +1,5 @@
 build:
-  - docker build -t floodlight .
-  - docker tag floodlight containers.cisco.com/chart2/floodlight
-  - docker push containers.cisco.com/chart2/floodlight
+  script:
+    - docker build -t floodlight .
+    - docker tag floodlight containers.cisco.com/chart2/floodlight
+    - docker push containers.cisco.com/chart2/floodlight
