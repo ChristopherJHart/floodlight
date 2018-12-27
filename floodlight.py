@@ -30,7 +30,12 @@ __license__ = """
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
-logging.basicConfig(filename="floodlight.log", format="%(asctime)-15s %(levelname)-8s [%(funcName)20s] %(message)s", filemode="a+")
+log_format = logging.Formatter("%(asctime)-15s %(levelname)-8s [%(funcName)20s] %(message)s")
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+handler.setFormatter(log_format)
+log.addHandler(handler)
+logging.basicConfig(filename="floodlight.log", filemode="a+")
 
 NXOS_CFG_PATH = "/startup-config"
 
@@ -50,19 +55,18 @@ def main():
         parse = CCP(cfg_list)
     else:
         log.error("[SETUP] NX-OS startup-config file not detected!")
-        print("NX-OS startup-config file not detected!")
         sys.exit()
     
     capture = pyshark.LiveCapture()
     capture.sniff(timeout=args.capture_time)
     for packet in capture.sniff_continuously():
-        print("Packet: {}".format(packet))
+        log.info("Packet: {}".format(packet))
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Identifies unexpected control-plane traffic")
 
     # Optional arguments
-    parser.add_argument("--debug", "-d", action="storeTrue", default=False, help="Enable debug logging levels")
+    parser.add_argument("--debug", "-d", action="store_true", default=False, help="Enable debug logging levels")
     parser.add_argument("--capture-time", "-c", action="store", default="1", help="Amount of time (in minutes) to capture control-plane traffic for")
 
     args = parser.parse_args()
