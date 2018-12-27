@@ -7,5 +7,5 @@ build:
   script:
     - docker build --build-arg GITLAB_TOKEN -t floodlight .
     - docker tag floodlight containers.cisco.com/chart2/floodlight
-    - docker login containers.cisco.com --username $token --password $QUAY_TOKEN
+    - docker login --username $token --password $QUAY_TOKEN containers.cisco.com
     - docker push containers.cisco.com/chart2/floodlight
