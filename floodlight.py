@@ -60,7 +60,7 @@ def main():
     else:
         capture_time = 1
     
-    capture = pyshark.LiveCapture()
+    capture = pyshark.LiveCapture("eth1")
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
