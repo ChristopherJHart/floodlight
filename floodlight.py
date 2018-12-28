@@ -62,8 +62,8 @@ def main():
         capture_time = 1
     
     filters = create_filters(parse)
-    log.info("==== FILTERS ====")
-    log.info(pformat(filters))
+    log.debug("==== FILTERS ====")
+    log.debug("\n{}".format(pformat(filters)))
     
     capture = pyshark.LiveCapture("eth1")
     cap_timeout = 60 * capture_time
