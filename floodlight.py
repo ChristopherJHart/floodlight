@@ -60,8 +60,6 @@ def main():
     else:
         capture_time = 1
     
-
-    
     capture = pyshark.LiveCapture()
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))

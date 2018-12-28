@@ -1,5 +1,6 @@
 FROM alpine:latest
 
+RUN export PS4='\t '
 ARG GITLAB_TOKEN
 ENV GITLAB_TOKEN=$GITLAB_TOKEN
 
