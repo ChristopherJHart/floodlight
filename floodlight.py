@@ -84,6 +84,7 @@ def main():
             continue
 
     unexpected_packets = [packet for packet in capture if not expected_packet(filters, packet)]
+    print("[UNEXPECTED] Number of unexpected packets: {}".format(len(unexpected_packets)))
 
 def create_filters(parse):
     filters = {}
