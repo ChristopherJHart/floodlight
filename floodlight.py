@@ -70,6 +70,7 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
+    log.debug(dir(capture[0]))
 
 def create_filters(parse):
     filters = {}
