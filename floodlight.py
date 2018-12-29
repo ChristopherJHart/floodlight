@@ -31,11 +31,14 @@ __license__ = """
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log_format = logging.Formatter("%(asctime)-15s %(levelname)-8s [%(funcName)20s] %(message)s")
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-handler.setFormatter(log_format)
-log.addHandler(handler)
-logging.basicConfig(filename="floodlight.log", filemode="a+")
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(log_format)
+log.addHandler(stream_handler)
+file_handler = logging.FileHandler("/var/log/floodlight.log", mode="a+")
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(log_format)
+log.addHandler(file_handler)
 
 NXOS_CFG_PATH = "/startup-config"
 
@@ -62,8 +65,8 @@ def main():
         capture_time = 1
     
     filters = create_filters(parse)
-    log.debug("==== FILTERS ====")
-    log.debug("\n{}".format(pformat(filters)))
+    log.info("==== FILTERS ====")
+    log.info("\n{}".format(pformat(filters)))
     
     capture = pyshark.LiveCapture("eth1")
     cap_timeout = 60 * capture_time
