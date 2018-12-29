@@ -73,13 +73,10 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
-    for index, packet in enumerate(capture):
-        print("Checking packet {}".format(index))
+    for packet in capture:
         try:
             #print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
             #print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
-            print("Contents: {} Type: {}".format(packet.tcp, type(packet.tcp)))
-            print("Dir: {}".format(dir(packet.tcp)))
             #print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
             sys.exit()
         except AttributeError:
@@ -229,12 +226,12 @@ def filtered_ports(ports, packet):
     try:
         if packet.tcp:
             packet_dict["transport"] = "TCP"
-            packet_dict["port"] = packet.tcp.dst
+            packet_dict["port"] = packet.tcp.dstport
     except AttributeError:
         try:
             if packet.udp:
                 packet_dict["transport"] = "UDP"
-                packet_dict["port"] = packet.udp.dst
+                packet_dict["port"] = packet.udp.dstport
         except AttributeError:
             return False
     if packet_dict in ports:
