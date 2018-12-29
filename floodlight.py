@@ -88,13 +88,13 @@ def create_filters(parse):
     filters["ip_protocol_type"] = []
     filters["protocols"] = []
     filters["ports"] = []
-    filter_ospf(parse, filters)
-    filter_eigrp(parse, filters)
-    filter_bgp(parse, filters)
-    filter_stp(parse, filters)
-    filter_hsrp(parse, filters)
-    filter_vrrp(parse, filters)
-    filter_ssh(parse, filters)
+    #filter_ospf(parse, filters)
+    #filter_eigrp(parse, filters)
+    #filter_bgp(parse, filters)
+    #filter_stp(parse, filters)
+    #filter_hsrp(parse, filters)
+    #filter_vrrp(parse, filters)
+    #filter_ssh(parse, filters)
     return filters
 
 def filter_ospf(parse, filters):
