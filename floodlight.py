@@ -71,6 +71,9 @@ def main():
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
     print(dir(capture[0]))
+    print(capture[0].layers)
+    print(dir(capture[0].layers))
+    print(dir(capture[0].ip))
     print(dir(capture[0].eth))
 
     unexpected_packets = [packet for packet in capture if not expected_packet(filters, packet)]
@@ -191,7 +194,7 @@ def expected_packet(filters, packet):
         return False
 
 def filtered_ip(ips, packet):
-    if packet.ip in ips:
+    if (packet.ip.src in ips) or (packet.ip.dst in ips):
         return True
     else:
         return False
@@ -203,7 +206,7 @@ def filtered_mac(macs, packet):
         return False
 
 def filtered_protocol_types(types, packet):
-    if packet.ip.protocols in types:
+    if packet.ip.type in types:
         return True
     else:
         return False
