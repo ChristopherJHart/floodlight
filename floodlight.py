@@ -202,21 +202,21 @@ def expected_packet(filters, packet):
 
 def filtered_ip(ips, packet):
     if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
-        log.debug("[PACKET-IP] Source IP: {} Destination IP: {}".format(packet.ip.src, packet.ip.dst))
+        log.info("[PACKET-IP] Source IP: {} Destination IP: {}".format(packet.ip.src, packet.ip.dst))
         return True
     else:
         return False
 
 def filtered_mac(macs, packet):
     if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
-        log.debug("[PACKET-MAC] Source MAC: {} Destination MAC: {}".format(packet.eth.src, packet.eth.dst))
+        log.info("[PACKET-MAC] Source MAC: {} Destination MAC: {}".format(packet.eth.src, packet.eth.dst))
         return True
     else:
         return False
 
 def filtered_protocol_types(types, packet):
     if packet.ip.proto in types:
-        log.debug("[PACKET-PROTO] Packet IP Protocol: {}".format(packet.ip.proto))
+        log.info("[PACKET-PROTO] Packet IP Protocol: {}".format(packet.ip.proto))
         return True
     else:
         return False
@@ -235,7 +235,7 @@ def filtered_ports(ports, packet):
         except AttributeError:
             return False
     if packet_dict in ports:
-        log.debug("[PACKET-PORTS] Transport: {} Destination Port: {}".format(packet_dict["protocol"], packet_dict["port"]))
+        log.info("[PACKET-PORTS] Transport: {} Destination Port: {}".format(packet_dict["protocol"], packet_dict["port"]))
         return True
     else:
         return False
