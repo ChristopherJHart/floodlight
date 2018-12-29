@@ -75,11 +75,9 @@ def main():
             print(dir(packet))
             print(dir(packet.ip))
             print(dir(packet.eth))
+            sys.exit()
         except AttributeError:
             continue
-    else:
-        sys.exit()
-    sys.exit()
 
     unexpected_packets = [packet for packet in capture if not expected_packet(filters, packet)]
 
