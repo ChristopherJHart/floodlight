@@ -75,10 +75,10 @@ def main():
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
     for packet in capture:
         try:
-            print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
-            print("Dir: {}".format(dir(packet.ip.src)))
+            #print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
             #print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
-            #print("Contents: {} Type: {}".format(packet.tcp.src, type(packet.tcp.dst)))
+            print("Contents: {} Type: {}".format(packet.tcp, type(packet.tcp)))
+            print("Dir: {}".format(dir(packet.tcp)))
             #print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
             sys.exit()
         except AttributeError:
