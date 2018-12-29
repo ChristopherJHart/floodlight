@@ -71,6 +71,9 @@ def main():
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
     print(dir(capture[0]))
+    print(dir(capture[0].eth))
+
+    unexpected_packets = [packet for packet in capture if not expected_packet(filters, packet)]
 
 def create_filters(parse):
     filters = {}
@@ -180,6 +183,38 @@ def filter_ssh(parse, filters):
     # it's on by default in NX-OS and is rarely disabled
     filters["ports"].append({"transport": "TCP", "port": "22"})
     filters["protocols"].append("SSH")
+
+def expected_packet(filters, packet):
+    if (filtered_ip(filters["ip"], packet) or filtered_mac(filters["mac"], packet) or filtered_protocol_types(filters["ip_protocol_types"], packet) or filtered_ports(filters["ports"], packet)):
+        return True
+    else:
+        return False
+
+def filtered_ip(ips, packet):
+    if packet.ip in ips:
+        return True
+    else:
+        return False
+
+def filtered_mac(macs, packet):
+    if packet.eth in macs:
+        return True
+    else:
+        return False
+
+def filtered_protocol_types(types, packet):
+    if packet.ip.protocols in types:
+        return True
+    else:
+        return False
+
+def filtered_ports(ports, packet):
+    src_port = packet.ip.src.port
+    dst_port = packet.ip.dst.port
+    if src_port in ports:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     main()
