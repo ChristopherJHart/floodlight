@@ -73,7 +73,8 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
-    for packet in capture:
+    for index, packet in enumerate(capture):
+        print("Checking packet {}".format(index))
         try:
             #print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
             #print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
@@ -203,14 +204,14 @@ def expected_packet(filters, packet):
         return False
 
 def filtered_ip(ips, packet):
-    if (packet.ip.src in ips) or (packet.ip.dst in ips):
+    if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
         log.debug("[PACKET-IP] Source IP: {} Destination IP: {}".format(packet.ip.src, packet.ip.dst))
         return True
     else:
         return False
 
 def filtered_mac(macs, packet):
-    if (packet.eth.src in macs) or (packet.eth.dst in macs):
+    if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
         log.debug("[PACKET-MAC] Source MAC: {} Destination MAC: {}".format(packet.eth.src, packet.eth.dst))
         return True
     else:
