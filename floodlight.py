@@ -76,9 +76,10 @@ def main():
     for packet in capture:
         try:
             print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
-            print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
-            print("Contents: {} Type: {}".format(packet.tcp.src, type(packet.tcp.dst)))
-            print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
+            print("Dir: {}".format(dir(packet.ip.src)))
+            #print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
+            #print("Contents: {} Type: {}".format(packet.tcp.src, type(packet.tcp.dst)))
+            #print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
             sys.exit()
         except AttributeError:
             continue
