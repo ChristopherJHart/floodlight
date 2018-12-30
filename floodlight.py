@@ -73,14 +73,14 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
-    for packet in capture:
-        try:
-            #print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
-            #print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
-            #print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
-            sys.exit()
-        except AttributeError:
-            continue
+    # for packet in capture:
+    #     try:
+    #         print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
+    #         print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
+    #         print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
+    #         sys.exit()
+    #     except AttributeError:
+    #         continue
 
     unexpected_packets = [packet for packet in capture if not expected_packet(filters, packet)]
     print("[UNEXPECTED] Number of unexpected packets: {}".format(len(unexpected_packets)))
