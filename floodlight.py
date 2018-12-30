@@ -74,7 +74,7 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: %s", len(capture))
-    time.sleep(5)
+    time.sleep(30)
     log.debug("[CAPTURE] Number of packets in capture: %s", len(capture))
     # for packet in capture:
     #     try:
@@ -84,6 +84,7 @@ def main():
     #         sys.exit()
     #     except AttributeError:
     #         continue
+    sys.exit()
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     print("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
 
