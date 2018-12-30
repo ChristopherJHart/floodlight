@@ -201,24 +201,33 @@ def expected_packet(filters, packet):
         return False
 
 def filtered_ip(ips, packet):
-    if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
-        log.info("[PACKET-IP] Source IP: {} Destination IP: {}".format(packet.ip.src, packet.ip.dst))
-        return True
-    else:
+    try:
+        if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
+            log.info("[PACKET-IP] Source IP: {} Destination IP: {}".format(packet.ip.src, packet.ip.dst))
+            return True
+        else:
+            return False
+    except AttributeError:
         return False
 
 def filtered_mac(macs, packet):
-    if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
-        log.info("[PACKET-MAC] Source MAC: {} Destination MAC: {}".format(packet.eth.src, packet.eth.dst))
-        return True
-    else:
+    try:
+        if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
+            log.info("[PACKET-MAC] Source MAC: {} Destination MAC: {}".format(packet.eth.src, packet.eth.dst))
+            return True
+        else:
+            return False
+    except AttributeError:
         return False
 
 def filtered_protocol_types(types, packet):
-    if packet.ip.proto in types:
-        log.info("[PACKET-PROTO] Packet IP Protocol: {}".format(packet.ip.proto))
-        return True
-    else:
+    try:
+        if packet.ip.proto in types:
+            log.info("[PACKET-PROTO] Packet IP Protocol: {}".format(packet.ip.proto))
+            return True
+        else:
+            return False
+    except AttributeError:
         return False
 
 def filtered_ports(ports, packet):
@@ -234,6 +243,8 @@ def filtered_ports(ports, packet):
                 packet_dict["port"] = packet.udp.dstport
         except AttributeError:
             return False
+    if not packet_dict:
+        return False
     if packet_dict in ports:
         log.info("[PACKET-PORTS] Transport: {} Destination Port: {}".format(packet_dict["protocol"], packet_dict["port"]))
         return True
