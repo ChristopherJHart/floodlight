@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+import subprocess
 from pprint import pprint, pformat
 
 __author__ = "Christopher Hart"
@@ -69,22 +70,12 @@ def main():
     log.info("==== FILTERS ====")
     log.info("\n%s", pformat(filters))
     
-    capture = pyshark.LiveCapture("eth1")
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
-    capture.sniff(timeout=cap_timeout)
-    log.info("[CAPTURE] Packet capture finished! Number of packets: %s", len(capture))
-    time.sleep(30)
+    subprocess.run(["tshark", "-n", "-i", "eth1", "-a", "duration:{}".format(cap_timeout), "-w", "/tmp/floodlight.pcapng", ">", "/dev/null", "2>&1",])
+    log.info("[CAPTURE] Packet capture finished!")
+    capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
     log.debug("[CAPTURE] Number of packets in capture: %s", len(capture))
-    # for packet in capture:
-    #     try:
-    #         print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
-    #         print("Contents: {} Type: {}".format(packet.eth.src, type(packet.eth.src)))
-    #         print("Contents: {} Type: {}".format(packet.ip.proto, type(packet.ip.proto)))
-    #         sys.exit()
-    #     except AttributeError:
-    #         continue
-    sys.exit()
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     print("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
 
