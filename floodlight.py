@@ -72,7 +72,7 @@ def main():
     
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
-    subprocess.run(["tshark", "-n", "-i", "eth1", "-a", "duration:{}".format(cap_timeout), "-w", "/tmp/floodlight.pcapng", ">", "/dev/null", "2>&1",])
+    subprocess.run(["tshark", "-n", "-i", "eth1", "-a", "duration:{}".format(cap_timeout), "-w", "/tmp/floodlight.pcapng", ">", "/dev/null", "2>&1",], shell=True)
     log.info("[CAPTURE] Packet capture finished!")
     capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
     log.debug("[CAPTURE] Number of packets in capture: %s", len(capture))
