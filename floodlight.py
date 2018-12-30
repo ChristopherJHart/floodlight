@@ -195,7 +195,7 @@ def filter_ssh(parse, filters):
     filters["protocols"].append("SSH")
 
 def expected_packet(filters, packet):
-    if (filtered_ip(filters["ip"], packet) or filtered_mac(filters["mac"], packet) or filtered_protocol_types(filters["ip_protocol_types"], packet) or filtered_ports(filters["ports"], packet)):
+    if (filtered_ip(filters["ip"], packet) or filtered_mac(filters["mac"], packet) or filtered_protocol_types(filters["ip_protocol_type"], packet) or filtered_ports(filters["ports"], packet)):
         return True
     else:
         return False
