@@ -36,7 +36,7 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(log_format)
 log.addHandler(stream_handler)
 file_handler = logging.FileHandler("/var/log/floodlight.log", mode="a+")
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(log_format)
 log.addHandler(file_handler)
 
@@ -44,10 +44,10 @@ NXOS_CFG_PATH = "/startup-config"
 
 def main():
     if os.environ.get("DEBUG") is not None:
-        file_handler.setLevel(logging.DEBUG)
+        log.setLevel(logging.DEBUG)
         log.info("[LOG] Debug logging level set!")
     else:
-        file_handler.setLevel(logging.INFO)
+        log.setLevel(logging.INFO)
         log.info("[LOG] Info logging level set!")
     
     if os.path.isfile(NXOS_CFG_PATH):
@@ -66,13 +66,13 @@ def main():
     
     filters = create_filters(parse)
     log.info("==== FILTERS ====")
-    log.info("\n{}".format(pformat(filters)))
+    log.info("\n%s", pformat(filters))
     
     capture = pyshark.LiveCapture("eth1")
     cap_timeout = 60 * capture_time
-    log.info("[CAPTURE] Beginning packet capture, be back in {} seconds...".format(cap_timeout))
+    log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
     capture.sniff(timeout=cap_timeout)
-    log.info("[CAPTURE] Packet capture finished! Number of packets: {}".format(len(capture)))
+    log.info("[CAPTURE] Packet capture finished! Number of packets: %s", len(capture))
     # for packet in capture:
     #     try:
     #         print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
@@ -83,7 +83,7 @@ def main():
     #         continue
 
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
-    print("[UNEXPECTED] Number of unexpected packets: {}".format(len(unexpected_packets)))
+    print("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
 
 def create_filters(parse):
     filters = {}
@@ -195,80 +195,80 @@ def filter_ssh(parse, filters):
     filters["protocols"].append("SSH")
 
 def expected_packet(filters, packet, idx):
-    log.debug("[PKT-CHECK][{}] Checking packet...".format(idx))
+    log.debug("[PKT-CHECK][%s] Checking packet...", idx)
     if (filtered_ip(filters["ip"], packet, idx) or 
             filtered_mac(filters["mac"], packet, idx) or 
             filtered_protocol_types(filters["ip_protocol_type"], packet, idx) or 
             filtered_ports(filters["ports"], packet, idx)):
-        log.debug("[PKT-CHECK][{}] Packet is expected!".format(idx))
+        log.debug("[PKT-CHECK][%s] Packet is expected!", idx)
         return True
     else:
-        log.debug("[PKT-CHECK][{}] Packet is ~NOT~ expected!".format(idx))
+        log.debug("[PKT-CHECK][%s] Packet is ~NOT~ expected!", idx)
         return False
 
 def filtered_ip(ips, packet, idx):
-    log.debug("[PKT-CHECK-IP][{}] Checking for match against IP filters".format(idx))
+    log.debug("[PKT-CHECK-IP][%s] Checking for match against IP filters", idx)
     try:
         if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
-            log.debug("[PKT-CHECK-IP][{}] Match! Source IP: {} Destination IP: {}".format(idx, packet.ip.src, packet.ip.dst))
+            log.debug("[PKT-CHECK-IP][%s] Match! Source IP: %s Destination IP: %s", idx, packet.ip.src, packet.ip.dst)
             return True
         else:
-            log.debug("[PKT-CHECK-IP][{}] No match".format(idx))
+            log.debug("[PKT-CHECK-IP][%s] No match", idx)
             return False
     except AttributeError:
-        log.debug("[PKT-CHECK-IP][{}] No IP header in packet".format(idx))
+        log.debug("[PKT-CHECK-IP][%s] No IP header in packet", idx)
         return False
 
 def filtered_mac(macs, packet, idx):
-    log.debug("[PKT-CHECK-MAC][{}] Checking for match against MAC filters".format(idx))
+    log.debug("[PKT-CHECK-MAC][%s] Checking for match against MAC filters", idx)
     try:
         if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
-            log.debug("[PKT-CHECK-MAC][{}] Match! Source MAC: {} Destination MAC: {}".format(idx, packet.eth.src, packet.eth.dst))
+            log.debug("[PKT-CHECK-MAC][%s] Match! Source MAC: %s Destination MAC: %s", idx, packet.eth.src, packet.eth.dst)
             return True
         else:
-            log.debug("[PKT-CHECK-MAC][{}] No match".format(idx))
+            log.debug("[PKT-CHECK-MAC][%s] No match", idx)
             return False
     except AttributeError:
-        log.debug("[PKT-CHECK-MAC][{}] No Ethernet header in packet".format(idx))
+        log.debug("[PKT-CHECK-MAC][%s] No Ethernet header in packet", idx)
         return False
 
 def filtered_protocol_types(types, packet, idx):
-    log.debug("[PKT-CHECK-IP-PROTO][{}] Checking for match against IP protocol filters".format(idx))
+    log.debug("[PKT-CHECK-IP-PROTO][%s] Checking for match against IP protocol filters", idx)
     try:
         if packet.ip.proto in types:
-            log.debug("[PKT-CHECK-IP-PROTO][{}] Match! Packet IP Protocol: {}".format(idx, packet.ip.proto))
+            log.debug("[PKT-CHECK-IP-PROTO][%s] Match! Packet IP Protocol: %s", idx, packet.ip.proto)
             return True
         else:
-            log.debug("[PKT-CHECK-IP-PROTO][{}] No match".format(idx))
+            log.debug("[PKT-CHECK-IP-PROTO][%s] No match", idx)
             return False
     except AttributeError:
-        log.debug("[PKT-CHECK-IP-PROTO][{}] No IP header in packet".format(idx))
+        log.debug("[PKT-CHECK-IP-PROTO][%s] No IP header in packet", idx)
         return False
 
 def filtered_ports(ports, packet, idx):
-    log.debug("[PKT-CHECK-L4-PORT][{}] Checking for match against L4 port filters".format(idx))
+    log.debug("[PKT-CHECK-L4-PORT][%s] Checking for match against L4 port filters", idx)
     packet_dict = {}
     try:
         if packet.tcp:
             packet_dict["transport"] = "TCP"
             packet_dict["port"] = packet.tcp.dstport
-            log.debug("[PKT-CHECK-L4-PORT][{}] TCP packet detected, dict: {}".format(idx, packet_dict))
+            log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, dict: %s", idx, packet_dict)
     except AttributeError:
         try:
             if packet.udp:
                 packet_dict["transport"] = "UDP"
                 packet_dict["port"] = packet.udp.dstport
-                log.debug("[PKT-CHECK-L4-PORT][{}] UDP packet detected, dict: {}".format(idx, packet_dict))
+                log.debug("[PKT-CHECK-L4-PORT][%s] UDP packet detected, dict: %s", idx, packet_dict)
         except AttributeError:
-            log.debug("[PKT-CHECK-L4-PORT][{}] No L4 headers in packet".format(idx))
+            log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
             return False
     if not packet_dict:
         return False
     if packet_dict in ports:
-        log.debug("[PKT-CHECK-L4-PORT][{}] Match! Transport: {} Destination Port: {}".format(idx, packet_dict["protocol"], packet_dict["port"]))
+        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Destination Port: %s", idx, packet_dict["protocol"], packet_dict["port"])
         return True
     else:
-        log.debug("[PKT-CHECK-L4-PORT][{}] No match".format(idx))
+        log.debug("[PKT-CHECK-L4-PORT][%s] No match", idx)
         return False
 
 if __name__ == "__main__":
