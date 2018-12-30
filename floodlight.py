@@ -76,9 +76,11 @@ def main():
     subprocess.Popen(tshark_cmd, shell=True).wait()
     log.info("[CAPTURE] Packet capture finished!")
     capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
-    log.debug("[CAPTURE] Number of packets in capture: %s", len(capture))
+    log.info("[CAPTURE] Number of packets in capture: %s", len(capture))
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
-    print("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
+    log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
+    for pkt in unexpected_packets:
+        log.info("[UNEXPECTED] %s", pkt.summary_line)
 
 def create_filters(parse):
     filters = {}
