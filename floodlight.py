@@ -3,6 +3,7 @@ import pyshark
 import logging
 import os
 import sys
+import time
 from pprint import pprint, pformat
 
 __author__ = "Christopher Hart"
@@ -73,6 +74,8 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
     capture.sniff(timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished! Number of packets: %s", len(capture))
+    time.sleep(5)
+    log.debug("[CAPTURE] Number of packets in capture: %s", len(capture))
     # for packet in capture:
     #     try:
     #         print("Contents: {} Type: {}".format(packet.ip.src, type(packet.ip.src)))
@@ -81,7 +84,6 @@ def main():
     #         sys.exit()
     #     except AttributeError:
     #         continue
-
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     print("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
 
