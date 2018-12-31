@@ -303,7 +303,7 @@ def filtered_ports(ports, packet, idx):
     if not packet_dict:
         return False
     if packet_dict in ports:
-        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Destination Port: %s", idx, packet_dict["protocol"], packet_dict["port"])
+        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Destination Port: %s", idx, packet_dict["transport"], packet_dict["port"])
         return True
     else:
         log.debug("[PKT-CHECK-L4-PORT][%s] No match", idx)
