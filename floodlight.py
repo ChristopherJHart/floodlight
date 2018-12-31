@@ -158,6 +158,7 @@ def create_filters(parse):
     filter_ssh(parse, filters)
     filter_vpc(parse, filters)
     filter_cdp(parse, filters)
+    filter_lldp(parse, filters)
     return filters
 
 def filter_ospf(parse, filters):
@@ -284,6 +285,15 @@ def filter_cdp(parse, filters):
         filters["protocols"].append("CDP")
     else:
         log.info("[FILTER] CDP is disabled, skipping...")
+        return None
+
+def filter_lldp(parse, filters):
+    if parse.find_objects("^feature lldp"):
+        log.info("[FILTER] LLDP feature is enabled")
+        filters["mac"].append("01:80:c2:00:00:0e")
+        filters["protocols"].append("LLDP")
+    else:
+        log.info("[FILTER] LLDP is disabled, skipping...")
         return None
 
 def expected_packet(filters, packet, idx):
