@@ -95,7 +95,7 @@ def main():
     sorted_list = sorted(unique_packet_list, key=itemgetter("flow_size"), reverse=True)
     log.info("{0!s: >15} RESULTS {0!s: <15}".format("=*5"))
     for packet in sorted_list:
-        log.info("Total Flow Size: %s bytes | Total Packet Count: %s | Packet Summary: %s", "{:,}".format(packet["flow_size"]), "{:,}".format(packet["pkt_count"]), summarize_packet(pkt))
+        log.info("Total Flow Size: %s bytes | Total Packet Count: %s | Packet Summary: %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(int(packet["pkt_count"])), summarize_packet(pkt))
 
 def get_packet_hash(pkt):
     return hashlib.sha256((bytes(summarize_packet(pkt).encode()))).hexdigest()
