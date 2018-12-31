@@ -384,6 +384,9 @@ def filtered_vpc(vpc_filter, packet, idx):
     except AttributeError:
         log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing", idx)
         return False
+    except TypeError:
+        log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing", idx)
+        return False
 
 
 if __name__ == "__main__":
