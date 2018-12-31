@@ -6,6 +6,8 @@ import sys
 import time
 import subprocess
 import re
+import hashlib
+from operator import itemgetter
 from pprint import pprint, pformat
 
 __author__ = "Christopher Hart"
@@ -80,8 +82,23 @@ def main():
     log.info("[CAPTURE] Number of packets in capture: %s", len(capture))
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
+    unique_packets = {}
     for pkt in unexpected_packets:
-        log.info("[UNEXPECTED] %s", summarize_packet(pkt))
+        pkt_hash = get_packet_hash(pkt)
+        if pkt_hash in unique_packets.keys():
+            unique_packets[pkt_hash]["pkt_count"] += 1
+            unique_packets[pkt_hash]["flow_size"] += pkt.length
+            unique_packets[pkt_hash]["last_pkt"] = pkt
+        else:
+            unique_packets[pkt_hash] = {"pkt_count": 1, "flow_size": pkt.length, "last_pkt": pkt}
+    unique_packet_list = unique_packets.values()
+    sorted_list = sorted(unique_packet_list, key=itemgetter("flow_size"), reverse=True)
+    log.info("{0!s: >15} RESULTS {0!s: <15}".format("=*5"))
+    for packet in sorted_list:
+        log.info("Total Flow Size: %s bytes | Total Packet Count: %s | Packet Summary: %s", "{:,}".format(packet["flow_size"]), "{:,}".format(packet["pkt_count"]), summarize_packet(pkt))
+
+def get_packet_hash(pkt):
+    return hashlib.sha256().update(summarize_packet(pkt)).digest()
 
 def summarize_packet(pkt):
     try:
