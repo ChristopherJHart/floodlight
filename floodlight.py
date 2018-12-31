@@ -82,6 +82,47 @@ def main():
     for pkt in unexpected_packets:
         log.info("[UNEXPECTED] %s", pkt.summary_line)
 
+def summarize_packet(pkt):
+    try:
+        l4_protocol = pkt.transport_layer
+    except AttributeError:
+        l4_protocol = "None"
+    try:
+        src_mac = pkt.eth.src
+    except AttributeError:
+        src_mac = "None"
+    try:
+        dst_mac = pkt.eth.dst
+    except AttributeError:
+        dst_mac = "None"
+    try:
+        src_ip = pkt.ip.src
+    except AttributeError:
+        src_ip = "None"
+    try:
+        dst_ip = pkt.ip.dst
+    except AttributeError:
+        dst_ip = "None"
+    try:
+        src_port = pkt.tcp.srcport
+    except AttributeError:
+        try:
+            src_port = pkt.udp.srcport
+        except AttributeError:
+            src_port = "None"
+    try:
+        dst_port = pkt.tcp.dstport
+    except AttributeError:
+        try:
+            dst_port = pkt.udp.dstport
+        except AttributeError:
+            dst_port = "None"
+    try:
+        app_protocol = pkt.highest_layer
+    except AttributeError:
+        app_protocol = "Unknown"
+    return "{} ({})\t{}\t{}:{}\t->\t{}:{}\t{}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
+
 def create_filters(parse):
     filters = {}
     filters["ip"] = []
