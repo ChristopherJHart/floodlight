@@ -121,7 +121,7 @@ def summarize_packet(pkt):
         app_protocol = pkt.highest_layer
     except AttributeError:
         app_protocol = "Unknown"
-    return "{:5} ({:7}) {:17} {:15}:{:6} -> {:15}:{:6} {:17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
+    return "{:05} ({:07}) {:17} {:15}:{:06} -> {:15}:{:06} {:17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
 
 def create_filters(parse):
     filters = {}
