@@ -365,7 +365,7 @@ def filtered_vpc(vpc_filter, packet, idx):
             ((vpc_filter["dst_ip"] in packet.ip.src) or (vpc_filter["dst_ip"] in packet.ip.dst)) and
             (vpc_filter["transport"] in packet.transport_layer) and
             (vpc_filter["src_port"] in packet.udp.srcport) and
-            (vpc_filter["dst_port"] in packet.udp.dsport)):
+            (vpc_filter["dst_port"] in packet.udp.dstport)):
             log.debug("[PKT-CHECK-VPC][%s] Match! vPC Source: %s vPC Destination: %s", idx, vpc_filter["src_ip"], vpc_filter["dst_ip"])
             return True
         else:
