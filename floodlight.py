@@ -97,6 +97,8 @@ def main():
     log.info("{0!s: >15} RESULTS {0!s: <15}".format("="*5))
     for packet in sorted_list:
         log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(int(packet["pkt_count"])), summarize_packet(pkt))
+    for packet in sorted_list:
+        log.debug(packet["last_pkt"])
 
 def get_packet_hash(pkt):
     return hashlib.sha256((bytes(summarize_packet(pkt).encode()))).hexdigest()
