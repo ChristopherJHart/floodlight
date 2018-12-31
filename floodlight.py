@@ -337,22 +337,25 @@ def filtered_ports(ports, packet, idx):
     packet_dict = {}
     try:
         if packet.tcp:
-            packet_dict["transport"] = "TCP"
-            packet_dict["port"] = packet.tcp.dstport
-            log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, dict: %s", idx, packet_dict)
+            packet_dict_src = {"transport": "TCP", "port": packet.tcp.srcport}
+            packet_dict_dst = {"transport": "TCP", "port": packet.tcp.dstport}
+            log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
     except AttributeError:
         try:
             if packet.udp:
-                packet_dict["transport"] = "UDP"
-                packet_dict["port"] = packet.udp.dstport
-                log.debug("[PKT-CHECK-L4-PORT][%s] UDP packet detected, dict: %s", idx, packet_dict)
+                packet_dict_src = {"transport": "UDP", "port": packet.udp.srcport}
+                packet_dict_dst = {"transport": "UDP", "port": packet.udp.dstport}
+                log.debug("[PKT-CHECK-L4-PORT][%s] UDP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
         except AttributeError:
             log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
             return False
     if not packet_dict:
         return False
-    if packet_dict in ports:
-        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Destination Port: %s", idx, packet_dict["transport"], packet_dict["port"])
+    if packet_dict_src in ports:
+        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Source Port: %s", idx, packet_dict_src["transport"], packet_dict_src["port"])
+        return True
+    elif packet_dict_dst in ports:
+        log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Destination Port: %s", idx, packet_dict_dst["transport"], packet_dict_dst["port"])
         return True
     else:
         log.debug("[PKT-CHECK-L4-PORT][%s] No match", idx)
