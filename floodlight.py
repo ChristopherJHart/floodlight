@@ -85,6 +85,7 @@ def main():
     unique_packets = {}
     for pkt in unexpected_packets:
         pkt_hash = get_packet_hash(pkt)
+        log.debug("[PKT-HASH] Packet summary (%s) -> %s hash", summarize_packet(pkt), get_packet_hash(pkt))
         if pkt_hash in unique_packets.keys():
             unique_packets[pkt_hash]["pkt_count"] += 1
             unique_packets[pkt_hash]["flow_size"] += int(pkt.length)
