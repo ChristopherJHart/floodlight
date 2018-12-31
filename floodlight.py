@@ -35,7 +35,7 @@ __license__ = """
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
-log_format = logging.Formatter("%(asctime)-15s %(levelname)-8s [%(funcName)10s] %(message)s")
+log_format = logging.Formatter("%(asctime)-15s %(levelname)-8s %(message)s")
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(log_format)
@@ -334,7 +334,6 @@ def filtered_protocol_types(types, packet, idx):
 
 def filtered_ports(ports, packet, idx):
     log.debug("[PKT-CHECK-L4-PORT][%s] Checking for match against L4 port filters", idx)
-    packet_dict = {}
     try:
         if packet.tcp:
             packet_dict_src = {"transport": "TCP", "port": packet.tcp.srcport}
@@ -349,8 +348,6 @@ def filtered_ports(ports, packet, idx):
         except AttributeError:
             log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
             return False
-    if not packet_dict:
-        return False
     if packet_dict_src in ports:
         log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Source Port: %s", idx, packet_dict_src["transport"], packet_dict_src["port"])
         return True
