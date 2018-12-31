@@ -98,7 +98,7 @@ def main():
         log.info("Total Flow Size: %s bytes | Total Packet Count: %s | Packet Summary: %s", "{:,}".format(packet["flow_size"]), "{:,}".format(packet["pkt_count"]), summarize_packet(pkt))
 
 def get_packet_hash(pkt):
-    return hashlib.sha256((bytes(summarize_packet(pkt)))).hexdigest()
+    return hashlib.sha256((bytes(summarize_packet(pkt).encode()))).hexdigest()
 
 def summarize_packet(pkt):
     try:
