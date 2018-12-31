@@ -80,7 +80,7 @@ def main():
     unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     for pkt in unexpected_packets:
-        log.info("[UNEXPECTED] %s", pkt.summary_line)
+        log.info("[UNEXPECTED] %s", summarize_packet(pkt))
 
 def summarize_packet(pkt):
     try:
