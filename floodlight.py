@@ -157,6 +157,7 @@ def create_filters(parse):
     filter_vrrp(parse, filters)
     filter_ssh(parse, filters)
     filter_vpc(parse, filters)
+    filter_cdp(parse, filters)
     return filters
 
 def filter_ospf(parse, filters):
@@ -218,7 +219,7 @@ def filter_hsrp(parse, filters):
         if hsrp_groups:
             log.info("[FILTER] HSRP feature and configuration found!")
             for group_cfg in hsrp_groups:
-                filters["mac"].append("0000.0c07.ac{:02x}".format(group_cfg.text.split()[-1]))
+                filters["mac"].append("00:00:0c:07:ac:{:02x}".format(group_cfg.text.split()[-1]))
             filters["ip"].append("224.0.0.102")
             filters["protocols"].append("HSRP")
         else:
@@ -235,7 +236,7 @@ def filter_vrrp(parse, filters):
         if vrrp_groups:
             log.info("[FILTER] VRRP feature and configuration found!")
             for group_cfg in vrrp_groups:
-                filters["mac"].append("0000.5e00.01{:02x}".format(group_cfg.text.split()[-1]))
+                filters["mac"].append("00:00:5e:00:01:{:02x}".format(group_cfg.text.split()[-1]))
             filters["ip"].append("224.0.0.18")
             filters["ip_protocol_type"].append("112")
             filters["protocols"].append("VRRP")
@@ -274,6 +275,15 @@ def filter_vpc(parse, filters):
             return None
     else:
         log.info("[FILTER] vPC configuration not found, skipping...")
+        return None
+
+def filter_cdp(parse, filters):
+    if not parse.find_objects("^no cdp enable"):
+        log.info("[FILTER] CDP feature is enabled!")
+        filters["mac"].append("01:00:0c:cc:cc:cc")
+        filters["protocols"].append("CDP")
+    else:
+        log.info("[FILTER] CDP is disabled, skipping...")
         return None
 
 def expected_packet(filters, packet, idx):
