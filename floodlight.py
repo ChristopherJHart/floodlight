@@ -87,18 +87,15 @@ def main():
         pkt_hash = get_packet_hash(pkt)
         log.debug("[PKT-HASH] Packet summary (%s) -> %s hash", summarize_packet(pkt), get_packet_hash(pkt))
         if pkt_hash in unique_packets.keys():
-            unique_packets[pkt_hash]["pkt_count"] += 1
             unique_packets[pkt_hash]["flow_size"] += int(pkt.length)
-            unique_packets[pkt_hash]["last_pkt"] = pkt
+            unique_packets[pkt_hash]["pkts"].append(pkt)
         else:
-            unique_packets[pkt_hash] = {"pkt_count": 1, "flow_size": int(pkt.length), "last_pkt": pkt}
+            unique_packets[pkt_hash] = {"flow_size": int(pkt.length), "pkts": [pkt]}
     unique_packet_list = unique_packets.values()
     sorted_list = sorted(unique_packet_list, key=itemgetter("flow_size"), reverse=True)
     log.info("{0!s: >15} RESULTS {0!s: <15}".format("="*5))
     for packet in sorted_list:
-        log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(int(packet["pkt_count"])), summarize_packet(pkt))
-    for packet in sorted_list:
-        log.debug(packet["last_pkt"])
+        log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(len(packet["pkts"])), summarize_packet(packet["pkts"][0]))
 
 def get_packet_hash(pkt):
     return hashlib.sha256((bytes(summarize_packet(pkt).encode()))).hexdigest()
