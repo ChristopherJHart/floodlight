@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import subprocess
+import re
 from pprint import pprint, pformat
 
 __author__ = "Christopher Hart"
@@ -130,6 +131,7 @@ def create_filters(parse):
     filters["ip_protocol_type"] = []
     filters["protocols"] = []
     filters["ports"] = []
+    filters["complex"] = []
     filter_ospf(parse, filters)
     filter_eigrp(parse, filters)
     filter_bgp(parse, filters)
@@ -137,6 +139,7 @@ def create_filters(parse):
     filter_hsrp(parse, filters)
     filter_vrrp(parse, filters)
     filter_ssh(parse, filters)
+    filter_vpc(parse, filters)
     return filters
 
 def filter_ospf(parse, filters):
@@ -185,7 +188,7 @@ def filter_bgp(parse, filters):
 def filter_stp(parse, filters):
     if parse.find_objects("^spanning-tree"):
         log.info("[FILTER] STP configuration found!")
-        filters["mac"].append("0180.c200.0000")
+        filters["mac"].append("01:80:c2:00:00:00")
         filters["protocols"].append("Spanning Tree Protocol")
     else:
         log.info("[FILTER] STP configuration not found, skipping...")
@@ -232,6 +235,30 @@ def filter_ssh(parse, filters):
     filters["ports"].append({"transport": "TCP", "port": "22"})
     filters["protocols"].append("SSH")
 
+def filter_vpc(parse, filters):
+    if parse.find_objects("^feature vpc"):
+        log.debug("[FILTER] vPC feature is enabled")
+        vpc_pka = parse.find_objects("peer-keepalive destination")
+        if vpc_pka:
+            log.info("[FILTER] vPC feature and peer-keepalive configuration found!")
+            for cfg in vpc_pka:
+                new_filter = {}
+                new_filter["protocol"] = "vPC"
+                new_filter["dst_ip"] = re.search(r"destination (\S+)", cfg.text).group(1)
+                res = re.search(r"source (\S+)", cfg.text)
+                if res:
+                    new_filter["src_ip"] = res.group(1)
+                new_filter["src_port"] = "3200"
+                new_filter["dst_port"] = "3200"
+                new_filter["transport"] = "UDP"
+                filters["complex"].append(new_filter)
+        else:
+            log.warning("[FILTER] vPC feature is enabled, but no vPC peer-keepalive configuration found!")
+            return None
+    else:
+        log.info("[FILTER] vPC configuration not found, skipping...")
+        return None
+
 def expected_packet(filters, packet, idx):
     log.debug("[PKT-CHECK][%s] Checking packet...", idx)
     if (filtered_ip(filters["ip"], packet, idx) or 
@@ -240,6 +267,11 @@ def expected_packet(filters, packet, idx):
             filtered_ports(filters["ports"], packet, idx)):
         log.debug("[PKT-CHECK][%s] Packet is expected!", idx)
         return True
+    if "complex" in filters.keys():
+        for complex_filter in filters["complex"]:
+            if "vPC" in complex_filter["protocol"]:
+                if filtered_vpc(complex_filter, packet, idx):
+                    return True
     else:
         log.debug("[PKT-CHECK][%s] Packet is ~NOT~ expected!", idx)
         return False
@@ -308,6 +340,24 @@ def filtered_ports(ports, packet, idx):
     else:
         log.debug("[PKT-CHECK-L4-PORT][%s] No match", idx)
         return False
+
+def filtered_vpc(vpc_filter, packet, idx):
+    log.debug("[PKT-CHECK-VPC][%s] Checking for match against vPC filter", idx)
+    try:
+        if (((vpc_filter["src_ip"] in packet.ip.src) or (vpc_filter["src_ip"] in packet.ip.dst)) and
+            ((vpc_filter["dst_ip"] in packet.ip.src) or (vpc_filter["dst_ip"] in packet.ip.dst)) and
+            (vpc_filter["transport"] in packet.transport_layer) and
+            (vpc_filter["src_port"] in packet.udp.srcport) and
+            (vpc_filter["dst_port"] in packet.udp.dsport)):
+            log.debug("[PKT-CHECK-VPC][%s] Match! vPC Source: %s vPC Destination: %s", idx, vpc_filter["src_ip"], vpc_filter["dst_ip"])
+            return True
+        else:
+            log.debug("[PKT-CHECK-VPC][%s] No match", idx)
+            return False
+    except AttributeError:
+        log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing", idx)
+        return False
+
 
 if __name__ == "__main__":
     main()
