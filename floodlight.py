@@ -121,7 +121,7 @@ def summarize_packet(pkt):
         app_protocol = pkt.highest_layer
     except AttributeError:
         app_protocol = "Unknown"
-    return "{!s: <5} ({!s: <7}) {!s: <17} {!s: <15}:{!s: <6} -> {!s: <15}:{!s: <6} {!s: <17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
+    return "{!s: <5} ({!s: <7}) {!s: <17} {!s: >15}:{!s: <6} -> {!s: >15}:{!s: <6} {!s: <17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
 
 def create_filters(parse):
     filters = {}
@@ -130,13 +130,13 @@ def create_filters(parse):
     filters["ip_protocol_type"] = []
     filters["protocols"] = []
     filters["ports"] = []
-    #filter_ospf(parse, filters)
-    #filter_eigrp(parse, filters)
-    #filter_bgp(parse, filters)
-    #filter_stp(parse, filters)
-    #filter_hsrp(parse, filters)
-    #filter_vrrp(parse, filters)
-    #filter_ssh(parse, filters)
+    filter_ospf(parse, filters)
+    filter_eigrp(parse, filters)
+    filter_bgp(parse, filters)
+    filter_stp(parse, filters)
+    filter_hsrp(parse, filters)
+    filter_vrrp(parse, filters)
+    filter_ssh(parse, filters)
     return filters
 
 def filter_ospf(parse, filters):
