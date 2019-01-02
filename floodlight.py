@@ -98,9 +98,31 @@ def main():
         log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(len(packet["pkts"])), summarize_packet(packet["pkts"][0]))
 
 def get_packet_hash(pkt):
+    """
+    Returns a SHA256 hash of a summarized packet for the purpose of uniquely identifying a flow.
+
+    Args:
+        pkt: A pyshark.packet object that will be hashed
+    
+    Returns:
+        String representing a SHA256 hash of the provided packet
+    """
     return hashlib.sha256((bytes(summarize_packet(pkt).encode()))).hexdigest()
 
 def summarize_packet(pkt):
+    """
+    Summarizes a packet into a human-legible string. Five key fields are represented
+    in the summary - source/destination IP, source/destination MAC address, source/
+    destination TCP/UDP port, and the transport protocol in use (such as TCP/UDP).
+    If any of the five key fields are missing, they are replaced with the text
+    "None".
+
+    Args:
+        pkt: A pyshark.packet object that will be summarized
+    
+    Returns:
+        String representing the summary of a packet
+    """
     try:
         l4_protocol = pkt.transport_layer
     except AttributeError:
@@ -142,13 +164,48 @@ def summarize_packet(pkt):
     return "{!s: <5} ({!s: <7}) {!s: <17} {!s: >15}:{!s: <6} -> {!s: >15}:{!s: <6} {!s: <17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
 
 def create_filters(parse):
+    """
+    Creates filters representing control-plane traffic that the device
+    should expect to receive based upon the startup configuration. These
+    filters are dictionary of lists as follows:
+
+    IP - A list of strings representing whitelisted IP addresses. If any
+        of these IP addresses appear in the source or destination IP fields
+        of a packet, the packet is expected.
+    MAC - A list of strings representing whitelisted MAC addresses. If any
+        of these MAC addresses appear in the source or destination MAC fields
+        of a packet, the packet is expected.
+    IP Protocol Type - A list of strings representing whitelisted IP protocol
+        types. If any of these IP protocol types appear in the IP field of a 
+        packet, the packet is expected. 
+    Ports - A list of dictionaries representing whitelisted transport protocol
+        ports. If any of these transport protocol and port combinations appear
+        in the transport protocol field of a packet, the packet is expected.
+        The defined port may be either the source or destination port.
+    Complex - A list of dictionaries representing a complex filter. These
+        filters are typically evaluated on a case-by-case basis by specific
+        functions. Each dictionary SHOULD contain the "protocol" key, the
+        value of which is a string representing a human-readable name of
+        the expected protocol.
+    Protocols - A list of strings representing protocol names. These are human-
+        readable names of expected protocols, and are used to summarize the
+        expected protocols that will be filtered.
+    
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+    
+    Returns:
+        A dictionary of lists with filters that will whitelist expected control-
+        plane traffic.
+    """
     filters = {}
     filters["ip"] = []
     filters["mac"] = []
     filters["ip_protocol_type"] = []
-    filters["protocols"] = []
     filters["ports"] = []
     filters["complex"] = []
+    filters["protocols"] = []
     filter_ospf(parse, filters)
     filter_eigrp(parse, filters)
     filter_bgp(parse, filters)
@@ -162,6 +219,21 @@ def create_filters(parse):
     return filters
 
 def filter_ospf(parse, filters):
+    """
+    Detects the presence of the OSPF feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist OSPF
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If OSPF feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature ospf"):
         log.debug("[FILTER] OSPF feature is enabled")
         if parse.find_objects("^router ospf"):
@@ -177,6 +249,21 @@ def filter_ospf(parse, filters):
         return None
 
 def filter_eigrp(parse, filters):
+    """
+    Detects the presence of the EIGRP feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist EIGRP
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If EIGRP feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature eigrp"):
         log.debug("[FILTER] EIGRP feature is enabled")
         if parse.find_objects("^router eigrp"):
@@ -188,10 +275,25 @@ def filter_eigrp(parse, filters):
             log.warning("[FILTER] EIGRP feature is enabled, but no configuration found!")
             return None
     else:
-        log.info("[FILTER] EIGRP feature is not enabled, skipping...")
+        log.debug("[FILTER] EIGRP feature is not enabled, skipping...")
         return None
 
 def filter_bgp(parse, filters):
+    """
+    Detects the presence of the BGP feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist BGP
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If BGP feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature bgp"):
         log.debug("[FILTER] BGP feature is enabled")
         if parse.find_objects("^router bgp"):
@@ -203,8 +305,22 @@ def filter_bgp(parse, filters):
             return None
     else:
         log.info("[FILTER] BGP feature is not enabkled, skipping...")
+        return None
 
 def filter_stp(parse, filters):
+    """
+    Detects the presence of STP configuration. If found, adds filter information
+    to the filters argument that will whitelist STP control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If STP configuration is not found, returns None.
+    """
     if parse.find_objects("^spanning-tree"):
         log.info("[FILTER] STP configuration found!")
         filters["mac"].append("01:80:c2:00:00:00")
@@ -214,6 +330,21 @@ def filter_stp(parse, filters):
         return None
 
 def filter_hsrp(parse, filters):
+    """
+    Detects the presence of the HSRP feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist HSRP
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If HSRP feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature hsrp"):
         log.debug("[FILTER] HSRP feature is enabled")
         hsrp_groups = parse.find_objects("hsrp \d+")
@@ -231,6 +362,21 @@ def filter_hsrp(parse, filters):
         return None
 
 def filter_vrrp(parse, filters):
+    """
+    Detects the presence of the VRRP feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist VRRP
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If VRRP feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature vrrp"):
         log.debug("[FILTER] HSRP feature is enabled")
         vrrp_groups = parse.find_objects("vrrp \d+")
@@ -249,12 +395,38 @@ def filter_vrrp(parse, filters):
         return None
 
 def filter_ssh(parse, filters):
-    # No need to detect configuration of SSH server, since 
-    # it's on by default in NX-OS and is rarely disabled
+    """
+    Adds filter information to the filters argument that will whitelist SSH
+    control-plane traffic. Note that because the SSH feature is on by default
+    and is very, *very* rarely disabled, we do not attempt to detect SSH
+    server configuration.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    """
     filters["ports"].append({"transport": "TCP", "port": "22"})
     filters["protocols"].append("SSH")
 
 def filter_vpc(parse, filters):
+    """
+    Detects the presence of the vPC feature and configuration. If both are found,
+    adds filter information to the filters argument that will whitelist vPC
+    control-plane traffic. A complex filter is utilized to whitelist vPC
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If vPC feature is not enabled, or if feature is enabled but no
+        configuration is found, returns None.
+    """
     if parse.find_objects("^feature vpc"):
         log.debug("[FILTER] vPC feature is enabled")
         vpc_pka = parse.find_objects("peer-keepalive destination")
@@ -279,6 +451,20 @@ def filter_vpc(parse, filters):
         return None
 
 def filter_cdp(parse, filters):
+    """
+    Detects the presence of CDP configuration. If configuration is not found,
+    adds filter information to the filters argument that will whitelist CDP
+    control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If CDP configuration is found, returns None.
+    """
     if not parse.find_objects("^no cdp enable"):
         log.info("[FILTER] CDP feature is enabled!")
         filters["mac"].append("01:00:0c:cc:cc:cc")
@@ -288,6 +474,19 @@ def filter_cdp(parse, filters):
         return None
 
 def filter_lldp(parse, filters):
+    """
+    Detects the presence of the LLDP feature. If found, adds filter information
+    to the filters argument that will whitelist LLDP control-plane traffic.
+
+    Args:
+        parse: a ciscoconfparse.CiscoConfParse object representing the device's
+               startup configuration.
+        filters: A dictionary of lists with filters that will whitelist expected
+                 control-plane traffic.
+    
+    Returns:
+        If LLDP feature is not enabled, returns None.
+    """
     if parse.find_objects("^feature lldp"):
         log.info("[FILTER] LLDP feature is enabled")
         filters["mac"].append("01:80:c2:00:00:0e")
