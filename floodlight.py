@@ -586,8 +586,8 @@ def filtered_vpc(vpc_filter, packet, idx):
         if (((vpc_filter["src_ip"] in packet["IP"].src) or (vpc_filter["src_ip"] in packet["IP"].dst)) and
             ((vpc_filter["dst_ip"] in packet["IP"].src) or (vpc_filter["dst_ip"] in packet["IP"].dst)) and
             (vpc_filter["transport"] in packet[2].name) and
-            (vpc_filter["src_port"] in packet[2].sport) and
-            (vpc_filter["dst_port"] in packet[2].dport)):
+            (vpc_filter["src_port"] in str(packet[2].sport)) and
+            (vpc_filter["dst_port"] in str(packet[2].dport))):
             log.debug("[PKT-CHECK-VPC][%s] Match! vPC Source: %s vPC Destination: %s", idx, vpc_filter["src_ip"], vpc_filter["dst_ip"])
             return True
         else:
