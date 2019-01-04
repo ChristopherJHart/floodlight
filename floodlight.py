@@ -111,7 +111,7 @@ def process_packet(unexpected_packets, filters, idx):
     
     log.debug("[SCAPY-PROC] Number of unexpected packets: %s", len(unexpected_packets))
     
-    return handle_scapy_packet
+    #return handle_scapy_packet
 
 def get_packet_hash(pkt):
     """
