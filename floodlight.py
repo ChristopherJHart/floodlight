@@ -80,7 +80,7 @@ def main():
     #subprocess.Popen(tshark_cmd, shell=True).wait()
     unexpected_packets = []
     pkt_number = 0
-    sniff(prn=process_packet(unexpected_packets, filters, pkt_number), store=False, timeout=cap_timeout)
+    #sniff(prn=process_packet(unexpected_packets, filters, pkt_number), store=False, timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished!")
     #capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
     log.info("[CAPTURE] Number of packets in capture: %s", pkt_number)
