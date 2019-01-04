@@ -7,6 +7,7 @@ import time
 import subprocess
 import re
 import hashlib
+from scapy.all import *
 from operator import itemgetter
 from pprint import pprint, pformat
 
@@ -75,12 +76,15 @@ def main():
     
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
-    tshark_cmd = "tshark -n -i eth1 -a duration:{} -w /tmp/floodlight.pcapng > /dev/null 2>&1".format(cap_timeout)
-    subprocess.Popen(tshark_cmd, shell=True).wait()
+    #tshark_cmd = "tshark -n -i eth1 -a duration:{} -w /tmp/floodlight.pcapng > /dev/null 2>&1".format(cap_timeout)
+    #subprocess.Popen(tshark_cmd, shell=True).wait()
+    unexpected_packets = []
+    pkt_number = 0
+    sniff(prn=process_packet(unexpected_packets, filters, pkt_number), store=False, timeout=cap_timeout)
     log.info("[CAPTURE] Packet capture finished!")
-    capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
-    log.info("[CAPTURE] Number of packets in capture: %s", len(capture))
-    unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
+    #capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
+    log.info("[CAPTURE] Number of packets in capture: %s", pkt_number)
+    #unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     unique_packets = {}
     for pkt in unexpected_packets:
@@ -96,6 +100,13 @@ def main():
     log.info("{0!s: >15} RESULTS {0!s: <15}".format("="*5))
     for packet in sorted_list:
         log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(len(packet["pkts"])), summarize_packet(packet["pkts"][0]))
+
+def process_packet(unexpected_packets, filters, idx):
+    idx += 1
+
+    def handle_scapy_packet(pkt):
+        if not expected_packet(filters, pkt, idx):
+            unexpected_packets.append(pkt)
 
 def get_packet_hash(pkt):
     """
@@ -124,42 +135,36 @@ def summarize_packet(pkt):
         String representing the summary of a packet
     """
     try:
-        l4_protocol = pkt.transport_layer
-    except AttributeError:
+        l4_protocol = pkt[2].name
+    except (AttributeError, IndexError):
         l4_protocol = "None"
     try:
-        src_mac = pkt.eth.src
-    except AttributeError:
+        src_mac = pkt["Ethernet"].src
+    except (AttributeError, IndexError):
         src_mac = "None"
     try:
-        dst_mac = pkt.eth.dst
-    except AttributeError:
+        dst_mac = pkt["Ethernet"].dst
+    except (AttributeError, IndexError):
         dst_mac = "None"
     try:
-        src_ip = pkt.ip.src
-    except AttributeError:
+        src_ip = pkt["IP"].src
+    except (AttributeError, IndexError):
         src_ip = "None"
     try:
-        dst_ip = pkt.ip.dst
-    except AttributeError:
+        dst_ip = pkt["IP"].dst
+    except (AttributeError, IndexError):
         dst_ip = "None"
     try:
-        src_port = pkt.tcp.srcport
-    except AttributeError:
-        try:
-            src_port = pkt.udp.srcport
-        except AttributeError:
-            src_port = "None"
+        src_port = pkt[2].sport
+    except (AttributeError, IndexError):
+        src_port = "None"
     try:
-        dst_port = pkt.tcp.dstport
-    except AttributeError:
-        try:
-            dst_port = pkt.udp.dstport
-        except AttributeError:
-            dst_port = "None"
+        dst_port = pkt[2].dport
+    except (AttributeError, IndexError):
+        dst_port = "None"
     try:
-        app_protocol = pkt.highest_layer
-    except AttributeError:
+        app_protocol = pkt.lastlayer().name
+    except (AttributeError, IndexError):
         app_protocol = "Unknown"
     return "{!s: <5} ({!s: <7}) {!s: <17} {!s: >15}:{!s: <6} -> {!s: >15}:{!s: <6} {!s: <17}".format(l4_protocol, app_protocol, src_mac, src_ip, src_port, dst_ip, dst_port, dst_mac)
 
@@ -347,7 +352,7 @@ def filter_hsrp(parse, filters):
     """
     if parse.find_objects("^feature hsrp"):
         log.debug("[FILTER] HSRP feature is enabled")
-        hsrp_groups = parse.find_objects("hsrp \d+")
+        hsrp_groups = parse.find_objects(r"hsrp \d+")
         if hsrp_groups:
             log.info("[FILTER] HSRP feature and configuration found!")
             for group_cfg in hsrp_groups:
@@ -515,8 +520,8 @@ def expected_packet(filters, packet, idx):
 def filtered_ip(ips, packet, idx):
     log.debug("[PKT-CHECK-IP][%s] Checking for match against IP filters", idx)
     try:
-        if (str(packet.ip.src) in ips) or (str(packet.ip.dst) in ips):
-            log.debug("[PKT-CHECK-IP][%s] Match! Source IP: %s Destination IP: %s", idx, packet.ip.src, packet.ip.dst)
+        if (str(packet["IP"].src) in ips) or (str(packet["IP"].dst) in ips):
+            log.debug("[PKT-CHECK-IP][%s] Match! Source IP: %s Destination IP: %s", idx, packet["IP"].src, packet["IP"].dst)
             return True
         else:
             log.debug("[PKT-CHECK-IP][%s] No match", idx)
@@ -528,8 +533,8 @@ def filtered_ip(ips, packet, idx):
 def filtered_mac(macs, packet, idx):
     log.debug("[PKT-CHECK-MAC][%s] Checking for match against MAC filters", idx)
     try:
-        if (str(packet.eth.src) in macs) or (str(packet.eth.dst) in macs):
-            log.debug("[PKT-CHECK-MAC][%s] Match! Source MAC: %s Destination MAC: %s", idx, packet.eth.src, packet.eth.dst)
+        if (packet["Ethernet"].src in macs) or (packet["Ethernet"].dst in macs):
+            log.debug("[PKT-CHECK-MAC][%s] Match! Source MAC: %s Destination MAC: %s", idx, packet["Ethernet"].src, packet["Ethernet"].dst)
             return True
         else:
             log.debug("[PKT-CHECK-MAC][%s] No match", idx)
@@ -541,8 +546,8 @@ def filtered_mac(macs, packet, idx):
 def filtered_protocol_types(types, packet, idx):
     log.debug("[PKT-CHECK-IP-PROTO][%s] Checking for match against IP protocol filters", idx)
     try:
-        if packet.ip.proto in types:
-            log.debug("[PKT-CHECK-IP-PROTO][%s] Match! Packet IP Protocol: %s", idx, packet.ip.proto)
+        if str(packet["IP"].proto) in types:
+            log.debug("[PKT-CHECK-IP-PROTO][%s] Match! Packet IP Protocol: %s", idx, packet["IP"].proto)
             return True
         else:
             log.debug("[PKT-CHECK-IP-PROTO][%s] No match", idx)
@@ -554,19 +559,12 @@ def filtered_protocol_types(types, packet, idx):
 def filtered_ports(ports, packet, idx):
     log.debug("[PKT-CHECK-L4-PORT][%s] Checking for match against L4 port filters", idx)
     try:
-        if packet.tcp:
-            packet_dict_src = {"transport": "TCP", "port": packet.tcp.srcport}
-            packet_dict_dst = {"transport": "TCP", "port": packet.tcp.dstport}
-            log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
+        packet_dict_src = {"transport": packet[2].name, "port": packet[2].sport}
+        packet_dict_dst = {"transport": packet[2].name, "port": packet[2].dport}
+        log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
     except AttributeError:
-        try:
-            if packet.udp:
-                packet_dict_src = {"transport": "UDP", "port": packet.udp.srcport}
-                packet_dict_dst = {"transport": "UDP", "port": packet.udp.dstport}
-                log.debug("[PKT-CHECK-L4-PORT][%s] UDP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
-        except AttributeError:
-            log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
-            return False
+        log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
+        return False
     if packet_dict_src in ports:
         log.debug("[PKT-CHECK-L4-PORT][%s] Match! Transport: %s Source Port: %s", idx, packet_dict_src["transport"], packet_dict_src["port"])
         return True
@@ -580,20 +578,17 @@ def filtered_ports(ports, packet, idx):
 def filtered_vpc(vpc_filter, packet, idx):
     log.debug("[PKT-CHECK-VPC][%s] Checking for match against vPC filter", idx)
     try:
-        if (((vpc_filter["src_ip"] in packet.ip.src) or (vpc_filter["src_ip"] in packet.ip.dst)) and
-            ((vpc_filter["dst_ip"] in packet.ip.src) or (vpc_filter["dst_ip"] in packet.ip.dst)) and
-            (vpc_filter["transport"] in packet.transport_layer) and
-            (vpc_filter["src_port"] in packet.udp.srcport) and
-            (vpc_filter["dst_port"] in packet.udp.dstport)):
+        if (((vpc_filter["src_ip"] in packet["IP"].src) or (vpc_filter["src_ip"] in packet["IP"].dst)) and
+            ((vpc_filter["dst_ip"] in packet["IP"].src) or (vpc_filter["dst_ip"] in packet["IP"].dst)) and
+            (vpc_filter["transport"] in packet[2].name) and
+            (vpc_filter["src_port"] in packet[2].sport) and
+            (vpc_filter["dst_port"] in packet[2].dport)):
             log.debug("[PKT-CHECK-VPC][%s] Match! vPC Source: %s vPC Destination: %s", idx, vpc_filter["src_ip"], vpc_filter["dst_ip"])
             return True
         else:
             log.debug("[PKT-CHECK-VPC][%s] No match", idx)
             return False
-    except AttributeError:
-        log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing", idx)
-        return False
-    except TypeError:
+    except (AttributeError, TypeError):
         log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing", idx)
         return False
 
