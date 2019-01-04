@@ -103,6 +103,7 @@ def main():
 
 def process_packet(unexpected_packets, filters, idx):
     idx += 1
+    log.info("[PROC] Processing packet %s", idx)
 
     def handle_scapy_packet(pkt):
         if not expected_packet(filters, pkt, idx):
