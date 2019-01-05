@@ -103,13 +103,13 @@ def main():
 
 def process_packet(unexpected_packets, filters, idx):
     idx += 1
-    log.debug("[SCAPY-PROC] Processing packet %s", idx)
+    log.info("[SCAPY-PROC] Processing packet %s", idx)
 
     # def handle_scapy_packet(pkt):
     #     if not expected_packet(filters, pkt, idx):
     #         unexpected_packets.append(pkt)
     
-    log.debug("[SCAPY-PROC] Number of unexpected packets: %s", len(unexpected_packets))
+    log.info("[SCAPY-PROC] Number of unexpected packets: %s", len(unexpected_packets))
     
     #return handle_scapy_packet
 
