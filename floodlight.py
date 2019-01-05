@@ -1,5 +1,4 @@
 from ciscoconfparse import CiscoConfParse as CCP
-import pyshark
 import logging
 import os
 import sys
