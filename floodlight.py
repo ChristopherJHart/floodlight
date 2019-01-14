@@ -77,13 +77,9 @@ def main():
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
     tshark_cmd = "tshark -n -i eth1 -a duration:{} -w /tmp/floodlight.pcapng > /dev/null 2>&1".format(cap_timeout)
     subprocess.Popen(tshark_cmd, shell=True).wait()
-    unexpected_packets = []
-    pkt_number = 0
-    sniff(prn=process_packet(unexpected_packets, filters, pkt_number), offline="/tmp/floodlight.pcapng")
-    log.info("[CAPTURE] Packet capture finished!")
-    #capture = pyshark.FileCapture("/tmp/floodlight.pcapng")
-    log.info("[CAPTURE] Number of packets in capture: %s", pkt_number)
-    #unexpected_packets = [packet for idx, packet in enumerate(capture, 1) if not expected_packet(filters, packet, idx)]
+    packets = rdpcap("/tmp/floodlight.pcapng")
+    log.info("[CAPTURE] Packet capture finished! %s packets in capture", len(packets))
+    unexpected_packets = [packet for idx, packet in enumerate(packets, 1) if not expected_packet(filters, packet, idx)]
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     unique_packets = {}
     for pkt in unexpected_packets:
