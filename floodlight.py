@@ -588,7 +588,7 @@ def filtered_vpc(vpc_filter, packet, idx):
         else:
             log.debug("[PKT-CHECK-VPC][%s] No match", idx)
             return False
-    except (AttributeError, TypeError) as exc:
+    except (AttributeError, TypeError, IndexError) as exc:
         log.debug("[PKT-CHECK-VPC][%s] Necessary headers are missing: %s", idx, exc)
         return False
 
