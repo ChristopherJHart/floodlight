@@ -526,7 +526,7 @@ def filtered_ip(ips, packet, idx):
         else:
             log.debug("[PKT-CHECK-IP][%s] No match", idx)
             return False
-    except AttributeError:
+    except (AttributeError, IndexError):
         log.debug("[PKT-CHECK-IP][%s] No IP header in packet", idx)
         return False
 
@@ -539,7 +539,7 @@ def filtered_mac(macs, packet, idx):
         else:
             log.debug("[PKT-CHECK-MAC][%s] No match", idx)
             return False
-    except AttributeError:
+    except (AttributeError, IndexError):
         log.debug("[PKT-CHECK-MAC][%s] No Ethernet header in packet", idx)
         return False
 
@@ -552,7 +552,7 @@ def filtered_protocol_types(types, packet, idx):
         else:
             log.debug("[PKT-CHECK-IP-PROTO][%s] No match", idx)
             return False
-    except AttributeError:
+    except (AttributeError, IndexError):
         log.debug("[PKT-CHECK-IP-PROTO][%s] No IP header in packet", idx)
         return False
 
@@ -562,7 +562,7 @@ def filtered_ports(ports, packet, idx):
         packet_dict_src = {"transport": packet[2].name, "port": packet[2].sport}
         packet_dict_dst = {"transport": packet[2].name, "port": packet[2].dport}
         log.debug("[PKT-CHECK-L4-PORT][%s] TCP packet detected, source: %s dst: %s", idx, packet_dict_src, packet_dict_dst)
-    except AttributeError:
+    except (AttributeError, IndexError):
         log.debug("[PKT-CHECK-L4-PORT][%s] No L4 headers in packet", idx)
         return False
     if packet_dict_src in ports:
