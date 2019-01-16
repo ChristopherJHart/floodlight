@@ -6,7 +6,7 @@ import time
 import subprocess
 import re
 import hashlib
-from scapy.all import *
+from scapy.all import sniff, rdpcap, wrpcap
 from operator import itemgetter
 from pprint import pprint, pformat
 
@@ -59,19 +59,16 @@ def main():
         log.info("[SETUP] NX-OS startup-config file detected")
         with open(NXOS_CFG_PATH) as cfgfile:
             cfg_list = cfgfile.readlines()
-        parse = CCP(cfg_list)
+        filters = create_filters(CCP(cfg_list))
+        log.info("==== FILTERS ====")
+        log.info("\n%s", pformat(filters))
     else:
-        log.error("[SETUP] NX-OS startup-config file not detected!")
-        sys.exit()
+        log.error("[SETUP] NX-OS startup-config file not detected! Using empty filters...")
     
     if os.environ.get("CAPTURE_TIME") is not None:
         capture_time = int(os.environ.get("CAPTURE_TIME"))
     else:
         capture_time = 1
-    
-    filters = create_filters(parse)
-    log.info("==== FILTERS ====")
-    log.info("\n%s", pformat(filters))
     
     cap_timeout = 60 * capture_time
     log.info("[CAPTURE] Beginning packet capture, be back in %s seconds...", cap_timeout)
@@ -86,17 +83,20 @@ def main():
         pkt_hash = get_packet_hash(pkt)
         log.debug("[PKT-HASH] Packet summary (%s) -> %s hash", summarize_packet(pkt), get_packet_hash(pkt))
         if pkt_hash in unique_packets.keys():
-            unique_packets[pkt_hash]["flow_size"] += get_pkt_len(pkt)
+            unique_packets[pkt_hash]["flow_size"] += get_packet_length(pkt)
             unique_packets[pkt_hash]["pkts"].append(pkt)
         else:
-            unique_packets[pkt_hash] = {"flow_size": get_pkt_len(pkt), "pkts": [pkt]}
+            unique_packets[pkt_hash] = {"flow_size": get_packet_length(pkt), "pkts": [pkt]}
     unique_packet_list = unique_packets.values()
     sorted_list = sorted(unique_packet_list, key=itemgetter("flow_size"), reverse=True)
     log.info("{0!s: >15} RESULTS {0!s: <15}".format("="*5))
     for packet in sorted_list:
         log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(len(packet["pkts"])), summarize_packet(packet["pkts"][0]))
+    if os.environ.get("EXPORT") is not None:
+        wrpcap(os.environ.get("EXPORT"), unexpected_packets)
+        log.info("[WRITE-PCAP] Successfully wrote unexpected files to PCAP at %s", os.environ.get("EXPORT"))
 
-def get_pkt_len(pkt):
+def get_packet_length(pkt):
     try:
         return int(pkt["IP"].len)
     except IndexError:
