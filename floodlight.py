@@ -93,8 +93,9 @@ def main():
     for packet in sorted_list:
         log.info("%s bytes (%s packets) | %s", "{:,}".format(int(packet["flow_size"])), "{:,}".format(len(packet["pkts"])), summarize_packet(packet["pkts"][0]))
     if os.environ.get("EXPORT") is not None:
+        log.info("[WRITE-PCAP] Writing unexpected packets to PCAP...")
         wrpcap(os.environ.get("EXPORT"), unexpected_packets)
-        log.info("[WRITE-PCAP] Successfully wrote unexpected files to PCAP at %s", os.environ.get("EXPORT"))
+        log.info("[WRITE-PCAP] Successfully wrote unexpected packets to PCAP at %s", os.environ.get("EXPORT"))
 
 def get_packet_length(pkt):
     try:
