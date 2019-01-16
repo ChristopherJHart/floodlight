@@ -64,6 +64,7 @@ def main():
         log.info("\n%s", pformat(filters))
     else:
         log.error("[SETUP] NX-OS startup-config file not detected! Using empty filters...")
+        filters = {}
     
     if os.environ.get("CAPTURE_TIME") is not None:
         capture_time = int(os.environ.get("CAPTURE_TIME"))
@@ -76,7 +77,8 @@ def main():
     subprocess.Popen(tshark_cmd, shell=True).wait()
     packets = rdpcap("/tmp/floodlight.pcapng")
     log.info("[CAPTURE] Packet capture finished! %s packets in capture", len(packets))
-    unexpected_packets = [packet for idx, packet in enumerate(packets, 1) if not expected_packet(filters, packet, idx)]
+    if filters:
+        unexpected_packets = [packet for idx, packet in enumerate(packets, 1) if not expected_packet(filters, packet, idx)]
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     unique_packets = {}
     for pkt in unexpected_packets:
