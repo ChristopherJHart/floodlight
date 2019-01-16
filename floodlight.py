@@ -79,6 +79,8 @@ def main():
     log.info("[CAPTURE] Packet capture finished! %s packets in capture", len(packets))
     if filters:
         unexpected_packets = [packet for idx, packet in enumerate(packets, 1) if not expected_packet(filters, packet, idx)]
+    else:
+        unexpected_packs = packets
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     unique_packets = {}
     for pkt in unexpected_packets:
