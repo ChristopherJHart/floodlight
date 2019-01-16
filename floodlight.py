@@ -80,7 +80,7 @@ def main():
     if filters:
         unexpected_packets = [packet for idx, packet in enumerate(packets, 1) if not expected_packet(filters, packet, idx)]
     else:
-        unexpected_packs = packets
+        unexpected_packets = packets
     log.info("[UNEXPECTED] Number of unexpected packets: %s", len(unexpected_packets))
     unique_packets = {}
     for pkt in unexpected_packets:
