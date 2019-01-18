@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk --update --no-cache add python3-dev git tcpdump gcc g++ libxml2 libxslt-dev tshark
+RUN apk --update --no-cache add python3-dev git gcc g++ libxml2 libxslt-dev tshark
 RUN pip3 install --upgrade pip
 RUN mkdir /floodlight
 ADD . /floodlight
