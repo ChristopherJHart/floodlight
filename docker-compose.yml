@@ -1,0 +1,12 @@
+version: "3"
+services:
+  floodlight:
+    image: chrisjhart/floodlight:dev
+    container_name: floodlight
+    volumes:
+      - /var/sysmgr/startup-cfg/ascii/system.cfg:/startup-config
+      - /var/log/:/var/log/
+      - /bootflash:/bootflash
+    environment:
+      - EXPORT=/bootflash/example_pcap.pcap
+    network_mode: "host"
