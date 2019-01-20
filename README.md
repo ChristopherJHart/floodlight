@@ -1,5 +1,10 @@
 # Floodlight
 
+[![](https://images.microbadger.com/badges/version/chrisjhart/floodlight.svg)](https://microbadger.com/images/chrisjhart/floodlight "Get your own version badge on microbadger.com")
+[![](https://images.microbadger.com/badges/image/chrisjhart/floodlight.svg)](https://microbadger.com/images/chrisjhart/floodlight "Get your own image badge on microbadger.com")
+![Docker Pulls](https://img.shields.io/docker/pulls/chrisjhart/floodlight.svg)
+![Docker Stars](https://img.shields.io/docker/stars/chrisjhart/floodlight.svg)
+
 Floodlight is a Dockerized Python application that identifies unexpected control plane traffic on Docker-capable Cisco Nexus data center switches and displays the top talkers of unexpected traffic. The startup configuration of the switch is analyzed to determine what traffic should be expected, and what traffic should not be expected.
 
 ## Usage
