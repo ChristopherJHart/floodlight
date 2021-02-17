@@ -66,5 +66,6 @@ If you have identified an unsupported protocol and would like support for it, bu
 This project is licensed under the terms of the Cisco Sample Code License. Please refer to the LICENSE.md file in this repository for more information, or view the license [here](https://developer.cisco.com/docs/licenses/#!cisco-sample-code-license/cisco-sample-code-license)
 
 ## Authors:
-    Christopher Hart - chart2@cisco.com
-    Yogesh Ramdoss - yramdoss@cisco.com
+Christopher Hart - chart2@cisco.com
+Yogesh Ramdoss - yramdoss@cisco.com
+
